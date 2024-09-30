@@ -13,7 +13,7 @@ Genetic Algorithm - Matching
 
 <p align="center">
   <a href="#description">Description</a> •
-  <a href="#initialization">Initialization</a> •
+  <a href="#solution-representation">Solution Representation</a> •
   <a href="#hyperparameters">Hyperparameters</a> •
   <a href="#grid-size-selection">Grid Size Selection</a> •
   <a href="#results">Results</a> •
@@ -30,11 +30,11 @@ This project implements a genetic algorithm to solve the Stable Marriage Problem
 1. **Data Processing**: The program reads preference data from a file named 'GA_input.txt', where each individual ranks all members of the opposite sex.
 
 2. **Genetic Algorithm Implementation**:
-  * Solution Representation: Each chromosome represents a complete matching of all pairs.
-  * Fitness Function: Evaluates the quality of each matching based on overall satisfaction and stability.
-  * Crossover: Implements a method to combine two parent solutions to create offspring.
-  * Mutation: Introduces random changes to maintain genetic diversity.
-  * Selection: Chooses the fittest individuals for the next generation.
+    * Solution Representation: Each chromosome represents a complete matching of all pairs.
+    * Fitness Function: Evaluates the quality of each matching based on overall satisfaction and stability.
+    * Crossover: Implements a method to combine two parent solutions to create offspring.
+    * Mutation: Introduces random changes to maintain genetic diversity.
+    * Selection: Chooses the fittest individuals for the next generation.
 
 3. **Optimization**: The algorithm runs for multiple generations, evolving better solutions over time.
    
@@ -44,80 +44,62 @@ This project implements a genetic algorithm to solve the Stable Marriage Problem
    
 6. **Parameter Tuning**: Explores different combinations of population size and number of generations (with their product being 18,000) to find the most efficient configuration.
 
-## Initialization
-  
-First, we calculate the median vector of the provided dataset, which serves as a baseline for weight initialization. A zero-filled array with dimensions corresponding to the SOM grid and input length is then created to hold the weights.
-Each weight vector is initialized by adding a combination of a random integer (between -80 and 80) and a small random normal noise (with mean 0 and standard deviation 5) to the median vector.
-Finally, the weights are clipped to ensure they stay within the range of 0 to 255, and converted to float type before being returned.
+This project demonstrates key concepts in computational biology and optimization, including genetic algorithms, combinatorial optimization, and the application of evolutionary principles to solve complex matching problems. It provides insights into how biological-inspired algorithms can be used to tackle problems in social sciences and economics.
 
-∀𝑖=1,…,𝑋,𝑗=1,…,𝑌: 𝑊𝑖𝑗​=𝑐𝑙𝑖𝑝(𝑀+𝑅_𝑖𝑗 ​+𝑁_𝑖𝑗 ​,0,255)
+## Solution Representation
 
- Where 𝑀 is the median vector of the dataset,  𝑅_𝑖𝑗 is a random integer vector of size with elements 𝑁 sampled uniformly between -80 and 80 and 𝑁_𝑖𝑗 is a random normal vector of size 𝑁 with elements sampled from a normal distribution with mean 0 and standard deviation 5.
+Our presentation of solution is an array  𝐴. The  index 𝑖 represent the man 𝑖  + 1, and 𝐴[𝐼] represent the woman i + 1.
+For example:
 
-<img src="https://github.com/user-attachments/assets/977fa636-4ace-42cb-a703-4a12acba8db0" alt="init" width="300"/>
+A = [5, 4, 6, 1, 3, 2]
 
-Here, we can see that the initialization respectively to the median in each pixel position resulted a relatively black picture with a white center, very much like the data is divided, but still no real digit can be appeared. In addition, we can recognize the “noise” created by 𝑁_𝑖𝑗 for each cell. 
-
-![image](https://github.com/user-attachments/assets/587afde7-b065-4e2d-ac41-c356883ea52a)
-
-  
-## Process of Vector Updates
-
-### Finding The Best Matching Unit (BMU)
-
-The BMU is the neuron in the SOM whose weight vector is most similar to the input vector. It's found using the Euclidean distance between the input vector 𝑣𝑒𝑐𝑡𝑜𝑟 and each neuron's weight vector 𝑊_𝑖𝑗 ​ in the SOM grid. The neuron with the smallest distance is the BMU.
-
-𝐵𝑀𝑈=𝑎𝑟𝑔𝑚𝑖𝑛(𝑖,𝑗) 𝛴_(𝑘=1)^𝑛  ​(𝑊_𝑖𝑗 ​(𝑘)−𝑣𝑒𝑐𝑡𝑜𝑟(𝑘))^2
+In the array above, man 1 (index 0) is matched with woman 5, and man 3 (index 2) is matched with woman 6. Of course, solution is valid if and only if the values in the array are all different and ranged between 1 to size_of_array (included). 
 
 
-### Choosing Neighbors
+### Evaluation Function
 
-After finding the BMU, the weights of neurons within the neighborhood of the BMU are updated to move closer to the input vector. This encourages spatial organization in the SOM. We used **Gaussian Neighborhood Function** to calculate the neighborhood of a BMU.
+First, we assume we get the preferences matrix for each sex, so the row represent a specific man/woman and the column represents what position the man/woman gave to a specific person. For example: If 𝑚𝑒𝑛_𝑝𝑟𝑒𝑓[2][5] = 4 so man 3 (𝑖+1) ranked woman 6 (𝑖+1) as his 4th preference.
+If wo𝑚𝑒𝑛_𝑝𝑟𝑒𝑓[5][4] = 5 so woman 6 (𝑖+1) ranked man 5 (𝑖+1) as her 5th preference.
 
-ℎ_𝑖𝑗 ​(𝑡)=exp⁡(−(𝑑_𝑖𝑗^2)/〖2𝜎(𝑡)〗^2 )
+We calculate the rank of a solution by looking at each index 𝑖 in the solution. for index 𝑖 (man 𝑖+1), We check what position the value 𝐴[𝑖 −1] (the woman he matched with) is in the man preferences array (𝑚𝑒𝑛_𝑝𝑟𝑒𝑓[𝑖][𝐴[𝑖]] == 𝐴[𝑖]), and we add A[i] to the rank. After that, we check where 𝑖 (man 𝑖+1) is located in the woman preferences array (𝑤𝑜𝑚𝑒𝑛_𝑝𝑟𝑒𝑓[𝐴[𝑖]] == 𝐼 + 1), and than adding it to the rank.
 
-Where 𝑑_𝑖𝑗​ is the distance between the BMU and neuron (𝑖,𝑗) and 𝜎(𝑡) is the current neighborhood radius at iteration 𝑡. The Gaussian function provides a smooth transition in weight updates across the SOM grid. Neurons close to the Best Matching Unit (BMU) receive higher weight updates, while those farther away receive smaller updates. This ensures that the learning process is gradual and helps in preserving the topology of the input data. In conclusion, it scales the influence of the BMU's proximity
- on the weight update, ensuring that closer neurons update more significantly.
+For example:
 
-![image](https://github.com/user-attachments/assets/19f1c3af-2dea-4d63-91d2-dce2e12b58f0)
+A = [5, 4, 6, 1, 3, 2]
 
-This is an example of how Gaussian Neighborhood Function
-act. The closer you are to the centroid (in our case – BMU) the larger you get (exponentially).
+For this array, we look at man 1 in index 0. We can see he was matched with woman 5. Therefore, we look at the 𝑚𝑒𝑛_𝑝𝑟𝑒𝑓[0], and check what position is number 5. For this example, lets say 𝑚𝑒𝑛_𝑝𝑟𝑒𝑓[0][3] == 5. Than, we add 4 to the rank, because man 1 positioned woman 5 in the 4th position.
+After that, we see that for 𝑤𝑜𝑚𝑒𝑛_𝑝𝑟𝑒𝑓[4][7] == 1, it means woman 5 positioned man 1 in the 8th place, so we add 8 to the rank.
 
-### Updating Neighbors
+As we can see, the minimal rank that can be achieved in a set of 60 people is 60 (all people receive their requests), and the maximal rank is 1800 (each person received his/her last preference, so 60 ∗ 30 = 1800). 
 
-After we find ℎ_𝑖𝑗 ​(𝑡), we calculate the value of the new vector’s weight. 
+As we can see, lower rank is better. Therefore, after we calculate the rank, we normalize it by this formula:
 
-𝑊_𝑖𝑗^𝑛𝑒𝑤 ​=𝑊_𝑖𝑗^𝑜𝑙𝑑 ​+𝜂(𝑡)⋅ℎ_𝑖𝑗 ​(𝑡)⋅(𝑣𝑒𝑐𝑡𝑜𝑟−𝑊_𝑖𝑗^𝑜𝑙𝑑 ​)
+![11](https://github.com/user-attachments/assets/1f8828ef-edef-4945-bb51-e4d0393d8935)
 
-Where 𝜂(𝑡) is the learning rate at iteration 𝑡, adjusting the magnitude of weight updates. 
+This normalized rank is ranged between 0 to 100. because we subtract the result from 100, we receive that a higher rank is better, of course while maintaining the rank original solution. Of course, we do not know the best or worst possible ranks regard to the preference matrix (if we did, we didn’t have to rank them…), so the values represent the rank compared to a best possible solution.
+
+In addition, we calculate the probability of all solutions to be selected. We do it while using softmax algorithm with a temperature parameter β.
+
+<img src="https://github.com/user-attachments/assets/04c2aa6b-31bf-4b2a-9ed8-c017133a565a" alt="init" width="500"/>
+<img src="https://github.com/user-attachments/assets/f11c0a46-dbc7-4010-8c17-8cef12a32f69" alt="init" width="300"/>
+
+### 
+
+
+### 
+
+
+### 
+
+
 
 
 ## Hyperparameters
-We initiate the values of the SOM as follows:
 
-* Learning Rate: 0.20
-* Radius: 0.21
-* Batch Percentage: 0.0012 
-* Iterations: ~10,000
-
-We reached those parameters after many test runs, concluding this parameters are good fit for us.
 
 ### Decay Functions
 
-Decay functions adjust the learning rate 𝜂(𝑡) and the neighborhood radius 𝜎(𝑡) over iterations to ensure the SOM converges smoothly.
 
-**Learning Rate Decay**: 𝜂(𝑡)=  𝜂_0⋅𝑒^(−𝛼𝑡)
-
-Where 𝜂_0  is the initial learning rate (0.20), 𝛼 is the decay rate parameter, initiated to 0.0009 and 𝑡 is the current iteration.
-
-**Neighborhood Radius Decay**: 𝜎(𝑡)  =  𝜂_0 ⋅𝑒^(−𝛽𝑡)
-
-Where 𝜎(𝑡)​ is the initial radius (0.21), 𝛽 is the decay rate parameter, initiated to 0.0025 and 𝑡 is the current iteration.
-
-These formulas govern how the learning rate and radius decrease over time, allowing the SOM to converge effectively.
-
-![image](https://github.com/user-attachments/assets/1719dc85-af08-455f-bc49-dcfa867d40cd)
 
 ## Grid Size Selection: 
 

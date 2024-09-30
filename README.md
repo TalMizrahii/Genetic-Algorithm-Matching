@@ -14,9 +14,8 @@ Genetic Algorithm - Matching
 <p align="center">
   <a href="#description">Description</a> •
   <a href="#solution-representation">Solution Representation</a> •
-  <a href="#hyperparameters">Hyperparameters</a> •
-  <a href="#grid-size-selection">Grid Size Selection</a> •
-  <a href="#results">Results</a> •
+  <a href="#algorithm">Algorithm</a> •
+  <a href="#running-samples">Running Samples</a> •
   <a href="#installing-and-executing">Installing And Executing</a> •
   <a href="#author">Author</a> 
 </p>
@@ -83,63 +82,61 @@ In addition, we calculate the probability of all solutions to be selected. We do
 <img src="https://github.com/user-attachments/assets/04c2aa6b-31bf-4b2a-9ed8-c017133a565a" alt="init" width="500"/>
 <img src="https://github.com/user-attachments/assets/f11c0a46-dbc7-4010-8c17-8cef12a32f69" alt="init" width="300"/>
 
-### 
+The softmax algorithm receive a vector of our ranks, and return a probability distribution of the vector it received. We use the temperature parameter β to efficiently distribute the probabilities, and to enhance the values of the larger elements (that we want to be selected).
 
 
-### 
+## Algorithm
+
+### Elitism
+
+Between each iteration, we set an elitism rate of 3 precent (%, rounded). This means that the best ranked 3% from all solutions will automatically move to the next phase.
+
+### Mutations
+
+We set the mutations rate to 20 precent. The mutation creation operation is that given a solution array, we randomly swap T times two values in the solution array (T is dynamically determined, will  be explained later in this report).
 
 
-### 
+### Crossovers
+
+We perform the crossovers on the remaining 77% of the solutions (the code is highly flexible for changes in any value, including the number of people, elitism or mutation rate).
+
+we randomly choose 2 solutions from the remaining solution array, based on each solution probability that we calculated during the rank calculation (using softmax). 
+ 
+Than, we divided both solutions into two halves. The first half of the solution is derived from the first parent, and the second half of the solution is derived from the second parent. After that, we validate our solution. If the validation found an error (duplicate), we search for a valid member (one we didn’t encounter yet) from the second parent.
+
+We do It from the second parent to keep the new solution based on the first two parents.
 
 
+### Early convergence
+
+To deal with the early convergence, we decided to use an algorithm from the networks world. The algorithm is RTT Round-Trip delay. 
+
+<img src="https://github.com/user-attachments/assets/ccc3a984-80e8-4eb2-8be2-e335fff704c7" alt="init" width="500"/>
+
+The algorithm suppose to delay (increase!) the time a computer is waiting for an acknowledgement for a message (ping, packet, etc.) he sent. It’s important that  0< 𝛼<  1, we set it to 0.9. In our case, we use this formula to determine T – The amount of swaps we perform in each mutation for a given iteration.
+
+Our samples are the average ranks evaluated in the iteration. We call this parameter “mutation-rate”. So, when the RTT difference was small, we increased the mutation-rate, and when it was high, we lowered the mutation rate! Since we start with a low value of mutation-rate, we climb up pretty low due to the minor changes in the average parameter. We also kept it below 16 not to perform a new random solution. The increase and decrease where by factor of 1.1 and 0.9 accordingly. 
 
 
-## Hyperparameters
+## Running Samples
 
+In this example, we made 3 runs. Each run has 100 iterations and 180 solutions. 
+We can see that the worst solution in all 3 runs is extremely unstable, this is due to the mutation percentage. The average solution is relatively stable, but shows a linear incline. The best solution is the gradually changing in all iterations, reaching around 83% success.
 
-### Decay Functions
+<img src="https://github.com/user-attachments/assets/341a99c7-2110-4b1a-8bb5-18d823aef4a2" alt="init" width="500"/>
 
+This is single run, reaching around 84% success.  We can see the best run has some convergence between iteration 22 to iteration 85. We can assume that due to the mutation rate increasing, the best solution increasing in addition.
 
+<img src="https://github.com/user-attachments/assets/6d3bc758-45b6-47c2-9ad5-df3621a416e2" alt="init" width="500"/>
 
-## Grid Size Selection: 
+Here, we can see different combinations of solution number and iteration. The first run is 100 iterations and 180 solutions, the second is 150 iterations and 120 solutions, and the last run is 200 iterations with 90 solutions.
+We notice that in the first run, the best solution is achieved after the full 100 iterations, what made it call to the evaluation function around 18,000 times.
 
-The digits dataset typically consists of 28x28 pixel images, resulting in 784-dimensional input vectors (since each pixel is a feature). A 10x10 SOM means there are 100 neurons in total, each with a weight vector of dimension 784. This setup allows each neuron to potentially capture a distinct pattern or cluster within the digit dataset.
+<img src="https://github.com/user-attachments/assets/9a02200f-ab8a-4fa5-ada7-1059acb4b860" alt="init" width="500"/>
 
-Therefore, the grid size should be large enough to capture the variability and complexity present in the dataset. For digits 0 to 9, which have distinct visual patterns but variations in writing style, a 10x10 grid can provide sufficient resolution to differentiate between different digits.
+In the second run, the best solution was achieved after 45 iterations, what makes it 45*120 = 5,400 calls to the evaluation function. The third run, converged to the best solution after around 30 iteration, what makes it 30 * 90 2,700 calls to the evaluation function.
+In conclusion, we can say that in our case, the best combination was run 3 with 90 solutions and 200 iterations.
 
-A 10x10 grid strikes a balance between computational feasibility and adequate representation of the dataset. To conclude, 10x10 grid size is generally a good fit because it allows for effective clustering and visualization of digit patterns. Each neuron in the SOM can represent a distinct digit or a group of similar digits.
-
-## Results
-
-For the output of the model, we used Both suggested representation, in addition to a heatmap. On the left grids, we can see the SOM’s grid.
-
-The grid contains the vector resulted, represented as a photo. Above each photo, we added what is the true label of the photo (how close it to the closest vector from digits_keys.csv file), and the percentage of entries that were mapped to this neuron.
-
-The heatmap represent the color-coded from white (0% accuracy) to red (100% accuracy). Each cell contains the classification accuracy for data points mapped to that neuron.
-This heatmap reveals how well each neuron performs in correctly identifying digits. This combined visualization allows for a comprehensive understanding of the SOM's performance, showing both the learned representations and the accuracy of classification across the map. 
-
-
-<img src="https://github.com/user-attachments/assets/3c2f5a00-9899-4c38-a155-7a132671b7b5" alt="init" width="500"/>
-
-In this 300 iterations run, we can see a very dense high accuracy on the corners of the heatmap, which perfectly coordinates with the clear, not blurred neurons of 6, 1 and 2. 
-
-<img src="https://github.com/user-attachments/assets/62b13838-f324-4912-9fac-f6798e38e195" alt="init" width="500"/>
-<img src="https://github.com/user-attachments/assets/8eaff925-5b55-48c3-98cb-944c178826c9" alt="init" width="500"/>
-
-As we can see, when we increase the number of iterations, more and more accurate cells are presented in the heatmap. Compared to the 300 and 600 iteration’s runs, the 1200 is starting to fill almost all grid with accurate cells. 
-On the other hand, in the 1,200 iteration’s run there ‘not accurate’ cells are much blurred and unclear. This is due to the transaction between cells. As the SOM learns, it creates smoother transitions between neighboring neurons, which can lead to less distinct representations in boundary areas or regions of uncertainty.
-
-<img src="https://github.com/user-attachments/assets/1d403bfe-d72b-4b2c-a159-798ea16798e9" alt="init" width="500"/>
-
-In this example, we ran the program for 10,000 iterations. We can clearly see this is the best run so far, not surprising due to our explanation about the connection between number of iterations to the SOM’s clarity. Of course, a perfect SOM is one with full red heatmap, but it would probably take forever on our PC’s. We can still see very white cells, like cell [2,9]. This is (as explained above) a result of two neighbors pulling each side of this cell to change it, but the overall result is excellent! This is also why we chose this solution as our final result.
-
-### Comparing to non-batching method
-
-<img src="https://github.com/user-attachments/assets/68fb275c-4090-4d4b-8996-dd581695cf08" alt="init" width="500"/>
-
-To compare batch and non-batched methods, we can see the difference between the two pairs of images from the previous section to this section. Both runs has approximately the same amount of calls to the update function (~100k).
-The accuracy heatmap shows a wider range of accuracy values with several cells having lower accuracy (e.g., 0.23, 0.26, 0.27).
-There are noticeable cells with accuracy below 50%, indicating areas where the model was less efficient then the batch model.
 
 ## Installing And Executing
   

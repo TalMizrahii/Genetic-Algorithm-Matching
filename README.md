@@ -1,7 +1,7 @@
 <h1 align="center">
   
-
-![download](https://github.com/user-attachments/assets/a76303db-d2e3-4714-889b-25fa8d9f2880)
+![download](https://github.com/user-attachments/assets/e9d5fe35-4a52-4746-923d-cc1eccbe2cbd)
+![download](https://github.com/user-attachments/assets/27ab19f8-bbf5-45db-8b53-9586feef66c7)
 
 Genetic Algorithm - Matching 
 

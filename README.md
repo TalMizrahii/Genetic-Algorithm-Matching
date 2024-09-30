@@ -144,12 +144,12 @@ You can use [Git](https://git-scm.com). From your command line:
 
 ```bash
 # Clone this repository.
-$ git clone https://github.com/TalMizrahii/Self-Organizing-Map
+$ git clone https://github.com/TalMizrahii/Genetic-Algorithm-Matching
 
 # Go into the repository.
-$ cd Self-Organizing-Map
+$ cd Genetic-Algorithm-Matching
 
-# Run the program from the release section
+# Run the program
 $ SelfOrganizingMap.exe
 
 ```

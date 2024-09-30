@@ -150,7 +150,7 @@ $ git clone https://github.com/TalMizrahii/Genetic-Algorithm-Matching
 $ cd Genetic-Algorithm-Matching
 
 # Run the program
-$ SelfOrganizingMap.exe
+$ GeneticAlgorithmMatching.exe
 
 ```
 ## Author
